@@ -1,0 +1,81 @@
+# 通用机器学习实验流水线
+name: "ML_Experiment"
+description: "标准 ML 实验：特征工程 → 模型训练 → 交叉验证 → Model Card"
+version: "1.0"
+
+agents:
+  - name: ML_Engineer
+    role: "ML 工程师 — 特征工程、模型训练、超参数调优"
+    model: claude-sonnet-4-6
+    tools:
+      - sros-db-query
+      - sros-data-run-script
+      - python-eval
+    state:
+      persist: true
+      ttl_days: 14
+
+  - name: ML_Reviewer
+    role: "ML 审核者 — 检查过拟合、方法学正确性、特征泄漏"
+    model: claude-opus-4-7
+    tools:
+      - arc-graph-query
+      - arc-wiki-read
+      - sros-data-run-script
+    state:
+      persist: true
+      ttl_days: 14
+
+workflow:
+  type: sequential_with_feedback
+  global_timeout_hours: 72
+  notify_on_completion:
+    webhook: "${WEBHOOK_URL}"
+
+  steps:
+    - id: step1_feature_engineering
+      agent: ML_Engineer
+      task: >
+        从数据库中提取特征，执行：
+        1. 数据清洗（异常值检测、标准化）
+        2. 特征工程（衍生特征、交互项）
+        3. 训练/验证/测试集划分（stratified 5-fold）
+        4. 生成 Feature_Catalog.md
+      timeout_hours: 8
+
+    - id: step2_model_training
+      agent: ML_Engineer
+      depends_on: [step1_feature_engineering]
+      task: >
+        训练多个候选模型：
+        1. 基线模型（线性回归/SVM）
+        2. 集成模型（Random Forest, XGBoost）
+        3. 深度学习（如适用）
+        4. 超参数网格搜索
+        5. 记录所有实验到 MLflow
+      timeout_hours: 48
+      on_failure: retry_with_backoff
+
+    - id: step3_model_review
+      agent: ML_Reviewer
+      depends_on: [step2_model_training]
+      task: >
+        审核模型训练结果：
+        1. 检查训练/验证曲线是否过拟合
+        2. 特征重要性一致性检查
+        3. 交叉验证方差评估
+        4. 如不合格，写修改建议并打回步骤 2
+      timeout_hours: 8
+      feedback_to: step2_model_training
+      max_feedback_loops: 3
+
+    - id: step4_model_card
+      agent: ML_Engineer
+      depends_on: [step3_model_review]
+      task: >
+        生成 Model Card：
+        1. 最终模型性能指标（AUC, F1, RMSE）
+        2. 特征重要性 Top-20
+        3. 校准曲线和混淆矩阵
+        4. 局限性和使用说明
+      timeout_hours: 4

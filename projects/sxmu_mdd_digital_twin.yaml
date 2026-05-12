@@ -1,0 +1,123 @@
+# SXMU_MDD 数字孪生 — 科研流水线
+# 基于 PRD v2.0 Phase 5.2 模板 + 真实 HPC 路径
+name: "SXMU_MDD_Digital_Twin_Discovery"
+description: "dTMS 抑郁症多模态特征提取与图神经网络建模验证"
+version: "1.0"
+
+# ── HPC 环境变量 (从 .env 注入) ──
+# HPC_HOST=pilogin.hpc.sjtu.edu.cn
+# HPC_USER=yuzhang2
+# SXMU_DATA=/lustre/home/acct-tifei.yuan/share/SXMU_Data
+# SXMU_WORK=/lustre/home/acct-yuzhang2/yuzhang2/SXMU
+
+agents:
+  - name: Data_Engineer
+    role: "数据工程师 — 数据查询、质量控制、HPC 作业提交与监控"
+    model: claude-sonnet-4-6
+    tools:
+      - sros-db-query
+      - sros-hpc-submit
+      - sros-hpc-status
+      - sros-data-run-script
+    state:
+      persist: true
+      ttl_days: 30
+
+  - name: Statistician
+    role: "统计学家 — 阅读 Data-Wiki、发现统计显著特征、训练预测模型"
+    model: claude-opus-4-7
+    tools:
+      - arc-wiki-read
+      - arc-graph-query
+      - sros-data-run-script
+      - python-eval
+    state:
+      persist: true
+      ttl_days: 30
+
+  - name: Principal_Investigator
+    role: "首席科学家 — 统筹全局、批判性审核、撰写最终报告"
+    model: claude-opus-4-7
+    tools:
+      - sros-scholar-search
+      - arc-wiki-read
+      - sros-manuscript-insert
+      - file-writer
+    state:
+      persist: true
+      ttl_days: 30
+
+workflow:
+  type: sequential_with_feedback
+  global_timeout_hours: 720  # 30 天
+  notify_on_completion:
+    webhook: "${DINGTALK_WEBHOOK}"
+
+  steps:
+    # ── 阶段 1: 数据底座构建 ──
+    - id: step1_data_extraction
+      agent: Data_Engineer
+      task: >
+        查询 SROS DuckDB 异构图谱，提取 dTMS 组全部被试（预期 ~106 人）。
+        校验数据完整性：
+        1. 确认每位被试有 T1 + DTI 基线数据
+        2. 确认有 HAMD 量表基线和随访评分
+        3. 确认 BIDS 路径可访问
+        4. 如有缺失，标记并报告。
+        5. 生成 subject_list.csv
+      timeout_hours: 2
+
+    # ── 阶段 2: HPC 脑网络提取 ──
+    - id: step2_hpc_brain_network
+      agent: Data_Engineer
+      task: >
+        基于被试清单，批量提交 Slurm 作业：
+        1. 使用 config/slurm/qsiprep_template.slurm 提交 DTI 预处理
+        2. 使用 config/slurm/graphmri_template.slurm 提交脑网络矩阵提取
+        3. 提交后进入轮询模式，每 30 分钟检查一次作业状态
+        4. 失败作业自动重试（最多 3 次，--mem 递增 16G→32G→48G）
+        5. 全部完成后汇总提取的连通性矩阵路径
+      timeout_hours: 72
+      on_failure: retry_with_backoff
+
+    # ── 阶段 3: 统计建模 ──
+    - id: step3_statistical_modeling
+      agent: Statistician
+      depends_on: [step2_hpc_brain_network]
+      task: >
+        从 ARC Data-Wiki 读取临床评估数据，结合步骤 2 的脑网络矩阵：
+        1. 基线特征统计描述（年龄、性别、HAMD 基线、CTQ 评分）
+        2. 多元线性回归：HAMD 减分率 ~ 脑网络属性 + 临床协变量
+        3. SVM / Random Forest 预测模型（5-fold CV, 目标: HAMD 减分率 >50%）
+        4. 特征重要性分析（SHAP values）
+        5. 生成 Model_Card.md（AUC, 校准曲线, 特征重要性 Top-20）
+      timeout_hours: 24
+
+    # ── 阶段 4: 同行评审 ──
+    - id: step4_peer_review
+      agent: Principal_Investigator
+      depends_on: [step3_statistical_modeling]
+      task: >
+        审核 Statistician 的输出：
+        1. 方法学正确性（多重比较校正、混淆控制）
+        2. 统计显著性（效应量 + p 值 + 置信区间）
+        3. 模型过拟合检测（训练/验证差距）
+        4. 临床可解释性（SHAP 特征是否与已知病理一致）
+        5. 如不合格，写具体修改建议并打回步骤 3
+        6. 如通过，撰写 Result.md
+      timeout_hours: 8
+      feedback_to: step3_statistical_modeling
+      max_feedback_loops: 3
+
+    # ── 阶段 5: 最终报告 ──
+    - id: step5_final_report
+      agent: Principal_Investigator
+      depends_on: [step4_peer_review]
+      task: >
+        汇总全部中间产物，撰写最终研究报告：
+        1. Introduction：dTMS 治疗 MDD 的背景和预测难题
+        2. Methods：106 例 dTMS 被试、DTI 预处理、GNN 架构
+        3. Results：预测性能 + 特征重要性 + 统计显著性
+        4. Discussion：临床意义、局限、与文献对比
+        5. 输出 Final_Report.md
+      timeout_hours: 12

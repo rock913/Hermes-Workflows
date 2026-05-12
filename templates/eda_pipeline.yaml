@@ -1,0 +1,63 @@
+# 通用探索性数据分析流水线
+name: "Exploratory_Data_Analysis"
+description: "对数据集执行标准 EDA：描述统计 → 可视化 → 初步假设"
+version: "1.0"
+
+agents:
+  - name: Data_Explorer
+    role: "数据探索者 — 描述统计、缺失值分析、分布可视化"
+    model: claude-sonnet-4-6
+    tools:
+      - sros-db-query
+      - sros-data-run-script
+      - arc-wiki-read
+    state:
+      persist: false
+      ttl_days: 7
+
+  - name: Hypothesis_Generator
+    role: "假设生成者 — 基于 EDA 发现提出初步研究假设"
+    model: claude-opus-4-7
+    tools:
+      - arc-wiki-read
+      - arc-graph-query
+      - sros-scholar-search
+    state:
+      persist: false
+      ttl_days: 7
+
+workflow:
+  type: sequential
+  global_timeout_hours: 24
+  notify_on_completion:
+    webhook: "${WEBHOOK_URL}"
+
+  steps:
+    - id: step1_descriptive_stats
+      agent: Data_Explorer
+      task: >
+        执行数据集的描述性统计：
+        1. 读取数据 schema 和元数据
+        2. 各变量的分布特征（均值/中位数/标准差/四分位数）
+        3. 缺失值分析和可视化
+        4. 生成 Data_Profile.md
+      timeout_hours: 2
+
+    - id: step2_correlation_analysis
+      agent: Data_Explorer
+      depends_on: [step1_descriptive_stats]
+      task: >
+        分析变量间的关联：
+        1. 相关矩阵（Pearson/Spearman）
+        2. 主成分分析
+        3. 按队列分组的差异检验
+        4. 生成 Correlation_Report.md
+      timeout_hours: 4
+
+    - id: step3_hypothesis_generation
+      agent: Hypothesis_Generator
+      depends_on: [step2_correlation_analysis]
+      task: >
+        基于前两步发现，结合文献回顾，提出 3-5 个具体可测试的研究假设。
+        每个假设需包含：理论依据、预测方向、所需验证数据。
+      timeout_hours: 4

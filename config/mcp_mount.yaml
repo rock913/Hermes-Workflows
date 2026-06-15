@@ -1,0 +1,40 @@
+# Hermes MCP mount configuration — used by hermes-cli mcp test
+# Mirror of docs/mcp_mount_spec.md in machine-readable form
+
+mcp_servers:
+  sros:
+    transport: sse
+    url: "http://localhost:8000/sse"
+    tools_prefix: "sros-"
+    description: "SROS research operating system — data query, HPC submission, manuscript management"
+    tools:
+      - name: sros-db-query
+        description: "Execute structured SQL queries against DuckDB heterogeneous graph"
+      - name: sros-hpc-submit
+        description: "Submit Slurm batch jobs to Pi 2.0 HPC cluster"
+      - name: sros-hpc-status
+        description: "Query Slurm job status (squeue)"
+      - name: sros-hpc-cancel
+        description: "Cancel Slurm jobs (scancel)"
+      - name: sros-data-run-script
+        description: "Execute data analysis Python scripts on HPC"
+      - name: sros-manuscript-insert
+        description: "Insert sections/paragraphs into manuscripts"
+      - name: sros-scholar-search
+        description: "Cross-database literature search"
+
+  arc:
+    transport: stdio
+    command: "arc-mcp-server"
+    args: ["--vault-dir", ".", "--wiki-dir", "docs/code_wiki", "--data-wiki-dir", "data_wiki"]
+    tools_prefix: "arc-"
+    description: "ARC knowledge engine — Code-Wiki graph query + Data-Wiki subject/cohort/scale query (DW5)"
+    tools:
+      - name: arc-mcp-impact
+        description: "Analyze module/function change impact scope"
+      - name: arc-mcp-context
+        description: "Query module/function context with dependency graph"
+      - name: arc-mcp-paths
+        description: "Find shortest call paths between two entities"
+      - name: arc-data-wiki-read
+        description: "Query Data-Wiki — subject/cohort/scale/literature (query_type: subject|cohort|scale|search|literature)"

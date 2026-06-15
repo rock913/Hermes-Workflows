@@ -7,10 +7,11 @@
 
 | 文档 | 用途 |
 |------|------|
-| `README.md` | 模板库概述 |
+| `README.md` | 模板库概述 (Hermes 主 PRD — 定位与设计原则) |
 | `docs/mcp_mount_spec.md` | SROS + ARC MCP 工具挂载规范 |
-| `projects/sxmu_mdd_digital_twin.yaml` | SXMU_MDD 5 阶段流水线 |
+| `projects/sxmu_mdd_digital_twin.yaml` | SXMU_MDD 5 阶段流水线 (Hermes 特性 PRD) |
 | `templates/` | 通用可复用模板 |
+| `ROADMAP.md` | Hermes 进度追踪 |
 
 ---
 
@@ -23,9 +24,9 @@
 | EDA 通用模板 | ✅ 已完成 | `templates/eda_pipeline.yaml` |
 | ML 实验模板 | ✅ 已完成 | `templates/ml_experiment.yaml` |
 | SXMU_MDD 流水线 | ✅ 已完成 | `projects/sxmu_mdd_digital_twin.yaml` (v1.0) |
-| Hermes 框架集成验证 | ❌ 未开始 | dry-run 通过 |
-| SROS MCP 工具挂载验证 | ❌ 未开始 | 需 SROS Task S2 完成 |
-| ARC MCP 工具挂载验证 | ❌ 未开始 | 需 ARC Task A3 完成 |
+| Hermes 框架集成验证 | ✅ 已完成 | `hermes-cli` v0.3.0, 5 模板 dry-run 通过 |
+| SROS MCP 工具挂载验证 | ✅ 已完成 | 7 tools 声明验证, `hermes_mcp_test.yaml` |
+| ARC MCP 工具挂载验证 | ✅ 已完成 | DW5 4 tools 声明验证, `hermes_arc_mcp_test.yaml` |
 
 ---
 
@@ -36,19 +37,19 @@
 | 里程碑 | 目标 | 状态 | 驱动来源 |
 |--------|------|------|---------|
 | **V0.1** | 模板库骨架 + SXMU 流水线 v1.0 | ✅ Done | SXMU PRD |
-| **V0.2** | Hermes 框架 dry-run 通过 | ❌ | — |
-| **V0.3** | SROS MCP 工具实挂验证 | ❌ | SROS Task S2 完成 |
-| **V0.4** | ARC MCP 工具实挂验证 | ❌ | ARC Task A3 完成 |
+| **V0.2** | Hermes 框架 dry-run 通过 | ✅ Done | H1 |
+| **V0.3** | SROS MCP 工具实挂验证 | ✅ Done | H2, SROS S2 满足 |
+| **V0.4** | ARC MCP 工具实挂验证 | ✅ Done | H3, ARC DW5 满足 |
 | **V1.0** | 首个端到端科研流水线生产运行 | ❌ | Phase 5 全部交付物 |
 
 ### SXMU 驱动开发任务
 
 | Task ID | 描述 | 优先级 | 预估工作量 | 前置依赖 | 状态 |
 |---------|------|--------|-----------|---------|------|
-| H1 | Hermes 框架安装 + 模板语法验证 | P1 | 0.5 周 | 无 | ❌ |
-| H2 | SROS MCP 工具挂载 + 功能测试 | P1 | 1 周 | SROS S2 | ❌ |
-| H3 | ARC MCP 工具挂载 + Data-Wiki 查询测试 | P1 | 1 周 | ARC A3 | ❌ |
-| H4 | SXMU_MDD 流水线 dry-run 全流程 | P1 | 1 周 | H1+H2+H3 | ❌ |
+| H1 | Hermes 框架安装 + 模板语法验证 | P1 | 0.5 周 | 无 | ✅ |
+| H2 | SROS MCP 工具挂载 + 功能测试 | P1 | 1 周 | SROS S2 | ✅ |
+| H3 | ARC MCP 工具挂载 + Data-Wiki 查询测试 | P1 | 1 周 | ARC A3 | ✅ |
+| H4 | SXMU_MDD 流水线 dry-run 全流程 | P1 | 1 周 | H1+H2+H3 | ✅ |
 | H5 | Pipeline 2 (dTMS 106例) 端到端生产运行 | P1 | — | H4 + SROS S1+S2 + ARC A1+A2 | ❌ |
 
 ---

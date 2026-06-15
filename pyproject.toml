@@ -1,0 +1,19 @@
+[project]
+name = "hermes-cli"
+version = "0.3.0"
+description = "Hermes agent orchestration CLI — validate & dry-run declarative research workflow templates"
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml",
+    "requests",
+]
+
+[project.scripts]
+hermes-cli = "hermes_cli.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["hermes_cli*"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

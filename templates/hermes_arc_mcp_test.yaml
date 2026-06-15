@@ -1,0 +1,79 @@
+# Hermes ARC MCP 工具连通性验证工作流 — H3
+# 验证 Hermes 对 ARC MCP Server (DW5) 的工具挂载与 Data-Wiki 查询能力
+name: "Hermes_ARC_MCP_Connectivity_Test"
+description: "验证 Hermes 对 ARC MCP Server 的工具挂载与 Data-Wiki 查询能力 (H3 milestone)"
+version: "1.0"
+
+agents:
+  - name: ARC_MCP_Tester
+    role: "MCP 验证者 — 测试 ARC MCP 工具发现、Data-Wiki 查询与跨域 Code-Wiki 搜索"
+    model: claude-sonnet-4-6
+    tools:
+      - arc-mcp-impact
+      - arc-mcp-context
+      - arc-mcp-paths
+      - arc-data-wiki-read
+    state:
+      persist: false
+      ttl_days: 1
+
+workflow:
+  type: sequential
+  global_timeout_hours: 1
+
+  steps:
+    - id: step1_arc_mcp_discovery
+      agent: ARC_MCP_Tester
+      task: >
+        验证 ARC MCP Server 工具发现：
+        1. 连接 ARC MCP Server (stdio transport, command: arc-mcp-server)
+        2. 列举所有可用工具
+        3. 确认以下 4 个工具在清单中：
+           - arc_mcp_impact (影响范围分析)
+           - arc_mcp_context (模块上下文与依赖查询)
+           - arc_mcp_paths (实体间调用路径查询)
+           - arc_data_wiki_read (Data-Wiki 被试/队列/量表/文献查询)
+        4. 如 4 个工具全部可见，生成 arc_discovery_ok.md
+        5. 如 ARC MCP Server 不在线，标注 MOCK_MODE 不阻塞流程
+      timeout_hours: 0.1
+
+    - id: step2_data_wiki_subject_query
+      agent: ARC_MCP_Tester
+      depends_on: [step1_arc_mcp_discovery]
+      task: >
+        验证 ARC Data-Wiki 查询能力：
+        1. 调用 arc_data_wiki_read (query_type="subject", subject_id="sub-001")
+        2. 验证返回 Markdown 页面含 frontmatter (demographics, clinical_scales, mri_scans)
+        3. 调用 arc_data_wiki_read (query_type="subject", subject_id="sub-001", format="json")
+        4. 验证 JSON 返回结构含 subject_id + cohort + scales 字段
+        5. 调用 arc_data_wiki_read (query_type="cohort", cohort_name="dTMS")
+        6. 验证返回队列级统计摘要 (N 人、年龄均值、性别比例)
+        7. 无 data_wiki/ 目录时验证优雅降级 (返回 "Data-Wiki not built" 提示不崩溃)
+        8. 生成 data_wiki_query_ok.md
+      timeout_hours: 0.15
+
+    - id: step3_code_wiki_smoke
+      agent: ARC_MCP_Tester
+      depends_on: [step1_arc_mcp_discovery]
+      task: >
+        验证 ARC Code-Wiki 工具烟测：
+        1. 调用 arc_mcp_context 查询已知模块 (target="claw-code-ingest")
+        2. 验证返回 Markdown 页面含依赖关系图与架构说明
+        3. 调用 arc_mcp_context (target="DuckDB") 验证跨模块搜索引擎命中
+        4. 调用 arc_mcp_paths (source="data_loader", target="model_trainer")
+        5. 验证返回调用路径 (列表或图结构)
+        6. 生成 code_wiki_smoke_ok.md
+      timeout_hours: 0.1
+
+    - id: step4_result_summary
+      agent: ARC_MCP_Tester
+      depends_on: [step2_data_wiki_subject_query, step3_code_wiki_smoke]
+      task: >
+        汇总 ARC MCP 验证结果：
+        1. 4 个工具发现状态 (discovery table)
+        2. Data-Wiki 查询结果 (subject/cohort/search 各维度)
+        3. Code-Wiki 查询结果 (context/paths 功能)
+        4. 整体 ARC MCP 健康评分 (0–100%)
+        5. 标注阻塞项（如有工具不可用或查询失败）
+        6. 生成 arc_mcp_test_report.md
+      timeout_hours: 0.1

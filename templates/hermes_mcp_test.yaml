@@ -7,7 +7,7 @@ version: "1.0"
 agents:
   - name: MCP_Tester
     role: "MCP 验证者 — 测试 SROS MCP 工具发现与基础调用"
-    model: claude-sonnet-4-6
+    model: deepseek-v4-pro
     tools:
       - sros-db-query
       - sros-hpc-status

@@ -51,6 +51,7 @@
 | H3 | ARC MCP 工具挂载 + Data-Wiki 查询测试 | P1 | 1 周 | ARC A3 | ✅ |
 | H4 | SXMU_MDD 流水线 dry-run 全流程 | P1 | 1 周 | H1+H2+H3 | ✅ |
 | H5 | Pipeline 2 (dTMS 106例) 端到端生产运行 | P1 | — | H4 + SROS S1+S2 + ARC A1+A2 | ❌ |
+| H6 | DeepSeek Prompt 硬化 — 模板 model 切换 + prompt_validator + validate-prompts 命令 | P1 | 0.5w | — | ✅ |
 
 ---
 

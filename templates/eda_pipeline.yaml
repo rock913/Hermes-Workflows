@@ -6,7 +6,7 @@ version: "1.0"
 agents:
   - name: Data_Explorer
     role: "数据探索者 — 描述统计、缺失值分析、分布可视化"
-    model: claude-sonnet-4-6
+    model: deepseek-v4-pro
     tools:
       - sros-db-query
       - sros-data-run-script
@@ -17,7 +17,7 @@ agents:
 
   - name: Hypothesis_Generator
     role: "假设生成者 — 基于 EDA 发现提出初步研究假设"
-    model: claude-opus-4-7
+    model: deepseek-v4-pro
     tools:
       - arc-wiki-read
       - arc-graph-query

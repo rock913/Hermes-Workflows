@@ -13,7 +13,7 @@ version: "1.0"
 agents:
   - name: Data_Engineer
     role: "数据工程师 — 数据查询、质量控制、HPC 作业提交与监控"
-    model: claude-sonnet-4-6
+    model: deepseek-v4-pro
     tools:
       - sros-db-query
       - sros-hpc-submit
@@ -25,7 +25,7 @@ agents:
 
   - name: Statistician
     role: "统计学家 — 阅读 Data-Wiki、发现统计显著特征、训练预测模型"
-    model: claude-opus-4-7
+    model: deepseek-v4-pro
     tools:
       - arc-wiki-read
       - arc-graph-query
@@ -37,7 +37,7 @@ agents:
 
   - name: Principal_Investigator
     role: "首席科学家 — 统筹全局、批判性审核、撰写最终报告"
-    model: claude-opus-4-7
+    model: deepseek-v4-pro
     tools:
       - sros-scholar-search
       - arc-wiki-read

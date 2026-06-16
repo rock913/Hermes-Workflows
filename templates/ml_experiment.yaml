@@ -6,7 +6,7 @@ version: "1.0"
 agents:
   - name: ML_Engineer
     role: "ML 工程师 — 特征工程、模型训练、超参数调优"
-    model: claude-sonnet-4-6
+    model: deepseek-v4-pro
     tools:
       - sros-db-query
       - sros-data-run-script
@@ -17,7 +17,7 @@ agents:
 
   - name: ML_Reviewer
     role: "ML 审核者 — 检查过拟合、方法学正确性、特征泄漏"
-    model: claude-opus-4-7
+    model: deepseek-v4-pro
     tools:
       - arc-graph-query
       - arc-wiki-read

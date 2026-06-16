@@ -7,7 +7,7 @@ version: "1.0"
 agents:
   - name: ARC_MCP_Tester
     role: "MCP 验证者 — 测试 ARC MCP 工具发现、Data-Wiki 查询与跨域 Code-Wiki 搜索"
-    model: claude-sonnet-4-6
+    model: deepseek-v4-pro
     tools:
       - arc-mcp-impact
       - arc-mcp-context

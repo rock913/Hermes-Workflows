@@ -149,3 +149,28 @@ system_prompt: |
 | 版本 | 日期 | 变更 |
 |------|------|------|
 | V1.0 | 2026-06-15 | 从 README.md 分离正式 PRD；新增 Prompt 风格规范；MCP 集成矩阵 |
+
+## 8. DeepSeek Prompt 适配 (V1.1)
+
+> 交付日期：2026-06-16 | 任务：H6 ✅
+
+所有模板 agent model 统一切换为 `deepseek-v4-pro`。新增 `hermes-cli validate-prompts` 命令：
+
+- `prompt_validator.py`: 校验 system_prompt 是否符合 DeepSeek 结构化指令格式
+  - 必需章节检查: Role:, Input:, Output format:
+  - Claude 残留检测: 角色扮演、礼貌用语、SOP 流程
+- 所有 5 个模板通过 DeepSeek Prompt 风格校验
+
+### Prompt 风格规范
+
+所有模板的 system_prompt 必须使用结构化指令格式：
+```yaml
+system_prompt: |
+  Role: <functional role description>
+  Input: <expected input schema>
+  Output format: strict JSON, no markdown wrapping.
+  Constraints:
+  - <constraint 1>
+```
+
+禁止 Claude 角色扮演风格（"你是一位..."、"请深呼吸"、"一步步思考"）。

@@ -183,6 +183,17 @@ def cmd_list_tools(args):
             print(f"    {desc}")
 
 
+def cmd_validate_prompts(args):
+    """Validate prompt style for DeepSeek compatibility."""
+    from hermes_cli.prompt_validator import validate_all_templates, print_validation_report
+
+    tmpl_dir = getattr(args, "templates_dir", None) or args.files[0] if hasattr(args, "files") and args.files else "templates"
+    print(f"🔍 Validating prompt style in: {tmpl_dir}")
+    results = validate_all_templates(tmpl_dir)
+    issue_count = print_validation_report(results)
+    return 0 if issue_count == 0 else 1
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="hermes-cli",
@@ -201,6 +212,10 @@ def main():
     p_run.add_argument("files", nargs="+", help="YAML template file(s)")
     p_run.add_argument("--dry-run", action="store_true", default=True, help="Dry-run mode (default)")
     p_run.set_defaults(func=cmd_dry_run)
+
+    p_vprompt = sub.add_parser("validate-prompts", help="Validate prompt style (DeepSeek compatibility)")
+    p_vprompt.add_argument("files", nargs="*", default=["templates"], help="Templates directory or YAML files")
+    p_vprompt.set_defaults(func=cmd_validate_prompts)
 
     p_mcp = sub.add_parser("mcp", help="MCP gateway operations")
     mcp_sub = p_mcp.add_subparsers(dest="mcp_command")

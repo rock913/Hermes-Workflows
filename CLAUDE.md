@@ -27,3 +27,32 @@
    - PR 被 Squash and Merge 后，远程分支会自动删除。
    - 本地执行 `git fetch --prune` 清理已删除的远程分支引用。
    - 本地分支可手动删除：`git branch -d <type>/<desc>`。
+
+## Contract-First Development (Contract-First 契约优先)
+
+> 来源：`conventions/devx-rules.md` §8 | Fable 5 架构哲学
+
+### 本项目的三层契约
+
+**Interface Contract**:
+- YAML 模板 Schema: `name, version, compatible_sros_version, steps[].tool/params/expected_output`
+- MCP Consumer: 通过 `docs/mcp_mount_spec.md` 定义的工具契约调用 SROS/ARC
+- system_prompt: DeepSeek 硬化格式 (Role:/Input:/Steps:/Output format:/Constraints:)
+
+**Behavior Contract**:
+- `hermes-cli validate` — YAML schema 校验 (7 templates)
+- `hermes-cli validate-prompts` — Prompt 风格校验 (H6)
+- `hermes-cli run --dry-run` — 工作流模拟执行
+
+**Cross-System Contract**:
+- SROS MCP: 7 tools (SSE transport, `docs/mcp_mount_spec.md`)
+- ARC MCP: 4 tools (stdio transport, DW5)
+- 新增 MCP tool → 更新 `contracts/mcp/` + 创建验证模板 (`hermes_*_mcp_test.yaml`)
+
+### Prompt 编写规范
+- 所有 system_prompt 使用结构化指令格式
+- Input/Output/Constraints 三要素必填
+- 禁止 Claude 角色扮演风格 ("你是一位..."、"请深呼吸")
+- 禁止 >3 步的 SOP 流程
+
+## 架构依赖
